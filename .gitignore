@@ -1,0 +1,4 @@
+partida*.json
+*.json
+__pycache__/
+*.pyc
