@@ -1,0 +1,101 @@
+"""
+main_javier.py — Main de desarrollo de JAVIER (no es el main final del juego).
+
+Corre SOLO las features de Javier:
+    ordenamiento.py, busqueda.py, inventario.py, alcohol.py,
+    complejidad.py, benchmark.py
+
+Uso:   python main_javier.py
+Las secciones que dependen de módulos de otros compañeros (ui, pila, cola,
+grafo, datos...) se saltan con un aviso si todavía no están en tu rama.
+El juego completo se corre con main.py (lo entrega Kal).
+"""
+
+import random
+from types import SimpleNamespace
+
+
+def seccion(titulo, funcion):
+    print("\n" + "=" * 70)
+    print(titulo)
+    print("=" * 70)
+    try:
+        funcion()
+    except ImportError as e:
+        print(f"  (se salta: falta un módulo de otro compañero -> {e})")
+
+
+def demo_ordenamiento():
+    from juego import ordenamiento as o
+    datos = [7, 3, 9, 1, 8, 2, 6]
+    print("  lista:", datos)
+    for nombre, f in o.ALGORITMOS.items():
+        res, m = f(datos)
+        print(f"  {nombre:10} -> {res}  comparaciones={m['comparaciones']} intercambios={m['intercambios']}")
+    print("  comparar():")
+    for fila in o.comparar(datos):
+        print("   ", fila)
+
+
+def demo_busqueda():
+    from juego import busqueda as b
+    lista = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
+    print("  lista ordenada:", lista)
+    print("  lineal   (56):", b.busqueda_lineal(lista, 56), "-> (índice, comparaciones)")
+    print("  binaria  (56):", b.busqueda_binaria(lista, 56))
+    print("  binaria  (99):", b.busqueda_binaria(lista, 99))
+    print("  --- justificación técnica ---")
+    b.imprimir_justificacion()
+
+
+def demo_alcohol():
+    from juego import alcohol as a
+    print("  tabla de probabilidades:")
+    print("   trago | magnitud | P(+) | E[efecto] | P(desmayo)")
+    for fila in a.tabla_probabilidades(9):
+        print("   ", " | ".join(str(x) for x in fila))
+    pampa = SimpleNamespace(tragos=0, alcohol_atk=0, alcohol_def=0)
+    rng = random.Random(42)
+    for _ in range(3):
+        r = a.beber(pampa, rng)
+        print(f"  trago {r['trago']}: {r['estadistica']} {r['delta']:+d} (desmayo={r['desmayo']})")
+    print("  resaca:", a.resaca(pampa))
+
+
+def demo_inventario():
+    from juego import datos
+    from juego.inventario import Inventario, catalogo_ordenado_por_id, buscar_en_catalogo
+    catalogo = {o["id"]: o for o in datos.CATALOGO_OBJETOS}
+    inv = Inventario(catalogo_por_id=catalogo)
+    for oid in ["pizza_fria", "carnet_falso", "energetica"]:
+        if oid in catalogo:
+            inv.agregar(oid)
+    print("  inventario:", inv.ids())
+    print("  búsqueda lineal 'pizza':", inv.buscar_por_nombre("pizza"))
+    print("  ordenado por valor:", inv.ordenar_por("valor")[0])
+    print("  peso total / valor total:", inv.peso_total(), "/", inv.valor_total())
+    ord_ = catalogo_ordenado_por_id(datos.CATALOGO_OBJETOS)
+    print("  búsqueda binaria en catálogo:", buscar_en_catalogo(ord_, ord_[3]["id"])[1], "comparaciones")
+
+
+def demo_complejidad():
+    from juego import complejidad
+    complejidad.imprimir_todo()
+
+
+def demo_benchmark():
+    from juego import benchmark
+    benchmark.ejecutar_todo()
+
+
+def main():
+    seccion("1) ORDENAMIENTO: burbuja, selección, inserción, quicksort, mergesort", demo_ordenamiento)
+    seccion("2) BÚSQUEDA lineal vs binaria", demo_busqueda)
+    seccion("3) ALCOHOL: probabilidad y valor esperado", demo_alcohol)
+    seccion("4) INVENTARIO (necesita datos y ui)", demo_inventario)
+    seccion("5) COMPLEJIDAD: tablas Big-O (necesita ui)", demo_complejidad)
+    seccion("6) BENCHMARK empírico (necesita ui, pila, cola, grafo)", demo_benchmark)
+
+
+if __name__ == "__main__":
+    main()
